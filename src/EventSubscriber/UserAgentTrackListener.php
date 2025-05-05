@@ -12,7 +12,7 @@ use Symfony\Component\DependencyInjection\Attribute\AutoconfigureTag;
 use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
-use Symfony\Component\PropertyAccess\PropertyAccessor;
+use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
 use Symfony\Contracts\Service\ResetInterface;
 use Tourze\DoctrineEntityCheckerBundle\Checker\EntityCheckerInterface;
 use Tourze\DoctrineUserAgentBundle\Attribute\CreateUserAgentColumn;
@@ -27,7 +27,7 @@ class UserAgentTrackListener implements ResetInterface, EntityCheckerInterface
 
     public function __construct(
         private readonly LoggerInterface $logger,
-        private readonly PropertyAccessor $propertyAccessor,
+        private readonly PropertyAccessorInterface $propertyAccessor,
     ) {
     }
 
