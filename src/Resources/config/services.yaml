@@ -6,3 +6,7 @@ services:
 
   Tourze\DoctrineUserAgentBundle\EventSubscriber\:
     resource: '../../EventSubscriber/'
+
+  doctrine-user-agent.property-accessor:
+    class: Symfony\Component\PropertyAccess\PropertyAccessor
+    factory: [ 'Symfony\Component\PropertyAccess\PropertyAccess', 'createPropertyAccessor' ]
