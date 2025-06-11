@@ -34,7 +34,7 @@ class DoctrineUserAgentIntegrationTest extends KernelTestCase
 
         try {
             $schemaTool->dropSchema($metadata);
-        } catch  (\Throwable $e) {
+        } catch (\Throwable $e) {
             // 忽略表不存在的错误
         }
 
