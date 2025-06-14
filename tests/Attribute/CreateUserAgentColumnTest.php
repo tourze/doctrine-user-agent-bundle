@@ -1,21 +1,21 @@
 <?php
 
-namespace Tourze\DoctrineUserAgentBundle\Tests\Unit\Attribute;
+namespace Tourze\DoctrineUserAgentBundle\Tests\Attribute;
 
 use PHPUnit\Framework\TestCase;
-use Tourze\DoctrineUserAgentBundle\Attribute\UpdateUserAgentColumn;
+use Tourze\DoctrineUserAgentBundle\Attribute\CreateUserAgentColumn;
 
-class UpdateUserAgentColumnTest extends TestCase
+class CreateUserAgentColumnTest extends TestCase
 {
     public function testAttributeExists(): void
     {
-        $attribute = new UpdateUserAgentColumn();
-        $this->assertInstanceOf(UpdateUserAgentColumn::class, $attribute);
+        $attribute = new CreateUserAgentColumn();
+        $this->assertInstanceOf(CreateUserAgentColumn::class, $attribute);
     }
 
     public function testAttributeTarget(): void
     {
-        $reflection = new \ReflectionClass(UpdateUserAgentColumn::class);
+        $reflection = new \ReflectionClass(CreateUserAgentColumn::class);
         $attributes = $reflection->getAttributes();
 
         $this->assertCount(1, $attributes);

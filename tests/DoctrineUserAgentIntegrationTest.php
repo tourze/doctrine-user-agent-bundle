@@ -1,6 +1,6 @@
 <?php
 
-namespace Tourze\DoctrineUserAgentBundle\Tests\Integration;
+namespace Tourze\DoctrineUserAgentBundle\Tests;
 
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Tools\SchemaTool;
@@ -8,17 +8,26 @@ use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
+use Tourze\DoctrineUserAgentBundle\DoctrineUserAgentBundle;
 use Tourze\DoctrineUserAgentBundle\EventSubscriber\UserAgentTrackListener;
-use Tourze\DoctrineUserAgentBundle\Tests\Integration\Entity\TestEntity;
+use Tourze\DoctrineUserAgentBundle\Tests\Entity\TestEntity;
+use Tourze\IntegrationTestKernel\IntegrationTestKernel;
 
 class DoctrineUserAgentIntegrationTest extends KernelTestCase
 {
     private EntityManagerInterface $entityManager;
     private UserAgentTrackListener $userAgentTrackListener;
 
-    protected static function getKernelClass(): string
+    protected static function createKernel(array $options = []): IntegrationTestKernel
     {
-        return IntegrationTestKernel::class;
+        return new IntegrationTestKernel(
+            $options['environment'] ?? 'test',
+            $options['debug'] ?? true,
+            [DoctrineUserAgentBundle::class => ['all' => true]],
+            [
+                'Tourze\DoctrineUserAgentBundle\Tests\Entity' => __DIR__ . '/Entity',
+            ]
+        );
     }
 
     protected function setUp(): void

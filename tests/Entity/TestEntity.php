@@ -1,6 +1,6 @@
 <?php
 
-namespace Tourze\DoctrineUserAgentBundle\Tests\Integration\Entity;
+namespace Tourze\DoctrineUserAgentBundle\Tests\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
 use Tourze\DoctrineUserAgentBundle\Attribute\CreateUserAgentColumn;

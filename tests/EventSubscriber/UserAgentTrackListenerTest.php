@@ -1,6 +1,6 @@
 <?php
 
-namespace Tourze\DoctrineUserAgentBundle\Tests\Unit\EventSubscriber;
+namespace Tourze\DoctrineUserAgentBundle\Tests\EventSubscriber;
 
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
