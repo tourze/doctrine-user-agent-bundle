@@ -34,7 +34,7 @@ class UserAgentTrackListener implements ResetInterface, EntityCheckerInterface
 
     public function prePersist(PrePersistEventArgs $args): void
     {
-        if (!$this->getUserAgent()) {
+        if (null === $this->getUserAgent()) {
             return;
         }
         $this->prePersistEntity($args->getObjectManager(), $args->getObject());
@@ -42,7 +42,7 @@ class UserAgentTrackListener implements ResetInterface, EntityCheckerInterface
 
     public function prePersistEntity(ObjectManager $objectManager, object $entity): void
     {
-        if (!$this->getUserAgent()) {
+        if (null === $this->getUserAgent()) {
             return;
         }
 
@@ -53,13 +53,14 @@ class UserAgentTrackListener implements ResetInterface, EntityCheckerInterface
                 continue;
             }
 
-            if (empty($property->getAttributes(CreateUserAgentColumn::class))) {
+            if (count($property->getAttributes(CreateUserAgentColumn::class)) === 0) {
                 continue;
             }
 
             // 已经有值了，我们就跳过
+            assert(is_object($entity));
             $v = $property->getValue($entity);
-            if (!empty($v)) {
+            if (null !== $v) {
                 continue;
             }
 
@@ -83,7 +84,7 @@ class UserAgentTrackListener implements ResetInterface, EntityCheckerInterface
 
     public function preUpdate(PreUpdateEventArgs $args): void
     {
-        if (!$this->getUserAgent()) {
+        if (null === $this->getUserAgent()) {
             return;
         }
 
@@ -93,7 +94,7 @@ class UserAgentTrackListener implements ResetInterface, EntityCheckerInterface
 
     public function preUpdateEntity(ObjectManager $objectManager, object $entity, PreUpdateEventArgs $eventArgs): void
     {
-        if (!$this->getUserAgent()) {
+        if (null === $this->getUserAgent()) {
             return;
         }
 
@@ -104,13 +105,14 @@ class UserAgentTrackListener implements ResetInterface, EntityCheckerInterface
                 continue;
             }
 
-            if (empty($property->getAttributes(UpdateUserAgentColumn::class))) {
+            if (count($property->getAttributes(UpdateUserAgentColumn::class)) === 0) {
                 continue;
             }
 
             // 已经有值了，我们就跳过
+            assert(is_object($entity));
             $v = $property->getValue($entity);
-            if (!empty($v)) {
+            if (null !== $v) {
                 continue;
             }
 
