@@ -21,7 +21,7 @@ use Tourze\DoctrineUserAgentBundle\Attribute\UpdateUserAgentColumn;
 
 #[AsDoctrineListener(event: Events::prePersist)]
 #[AsDoctrineListener(event: Events::preUpdate)]
-#[AutoconfigureTag('as-coroutine')]
+#[AutoconfigureTag(name: 'as-coroutine')]
 class UserAgentTrackListener implements ResetInterface, EntityCheckerInterface
 {
     private ?string $userAgent = null;

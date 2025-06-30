@@ -1,0 +1,9 @@
+includes:
+    - ../../phpstan.neon
+
+parameters:
+    ignoreErrors:
+        # 忽略测试实体的测试覆盖率要求 - 这些是测试用的 fixture，不需要自己的测试
+        - 
+            message: '#Class Tourze\\DoctrineUserAgentBundle\\Tests\\Entity\\TestEntity does not have a corresponding test class#'
+            path: tests/Entity/TestEntity.php

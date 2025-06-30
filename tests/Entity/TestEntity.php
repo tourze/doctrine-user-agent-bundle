@@ -10,31 +10,22 @@ use Tourze\DoctrineUserAgentBundle\Attribute\UpdateUserAgentColumn;
  * 测试实体类
  */
 #[ORM\Entity]
-#[ORM\Table(name: 'test_entity')]
+#[ORM\Table(name: 'test_entity', options: ['comment' => '测试实体表'])]
 class TestEntity implements \Stringable
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column]
+    #[ORM\Column(options: ['comment' => '主键ID'])]
     private ?int $id = null;
 
-    /**
-     * 实体名称
-     */
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(length: 255, options: ['comment' => '实体名称'])]
     private string $name;
 
-    /**
-     * 创建时的用户代理
-     */
-    #[ORM\Column(length: 255, nullable: true)]
+    #[ORM\Column(length: 255, nullable: true, options: ['comment' => '创建时的用户代理'])]
     #[CreateUserAgentColumn]
     private ?string $createdUserAgent = null;
 
-    /**
-     * 更新时的用户代理
-     */
-    #[ORM\Column(length: 255, nullable: true)]
+    #[ORM\Column(length: 255, nullable: true, options: ['comment' => '更新时的用户代理'])]
     #[UpdateUserAgentColumn]
     private ?string $updatedUserAgent = null;
 
