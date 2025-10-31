@@ -7,7 +7,6 @@ use Doctrine\ORM\Event\PrePersistEventArgs;
 use Doctrine\ORM\Event\PreUpdateEventArgs;
 use Doctrine\ORM\Events;
 use Doctrine\Persistence\ObjectManager;
-use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\AutoconfigureTag;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
@@ -27,7 +26,6 @@ class UserAgentTrackListener implements ResetInterface, EntityCheckerInterface
     private ?string $userAgent = null;
 
     public function __construct(
-        private readonly LoggerInterface $logger,
         #[Autowire(service: 'doctrine-user-agent.property-accessor')] private readonly PropertyAccessorInterface $propertyAccessor,
     ) {
     }
@@ -53,21 +51,17 @@ class UserAgentTrackListener implements ResetInterface, EntityCheckerInterface
                 continue;
             }
 
-            if (count($property->getAttributes(CreateUserAgentColumn::class)) === 0) {
+            if (0 === count($property->getAttributes(CreateUserAgentColumn::class))) {
                 continue;
             }
 
             // 已经有值了，我们就跳过
-            assert(is_object($entity));
             $v = $property->getValue($entity);
             if (null !== $v) {
                 continue;
             }
 
             $ip = $this->getUserAgent();
-            $this->logger->debug("为{$property->getName()}分配创建时的UA", [
-                'ip' => $ip,
-            ]);
             $this->propertyAccessor->setValue($entity, $property->getName(), $ip);
         }
     }
@@ -105,21 +99,17 @@ class UserAgentTrackListener implements ResetInterface, EntityCheckerInterface
                 continue;
             }
 
-            if (count($property->getAttributes(UpdateUserAgentColumn::class)) === 0) {
+            if (0 === count($property->getAttributes(UpdateUserAgentColumn::class))) {
                 continue;
             }
 
             // 已经有值了，我们就跳过
-            assert(is_object($entity));
             $v = $property->getValue($entity);
             if (null !== $v) {
                 continue;
             }
 
             $ip = $this->getUserAgent();
-            $this->logger->debug("为{$property->getName()}分配更新时的UA", [
-                'ip' => $ip,
-            ]);
             $this->propertyAccessor->setValue($entity, $property->getName(), $ip);
         }
     }

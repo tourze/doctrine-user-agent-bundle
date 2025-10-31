@@ -2,54 +2,52 @@
 
 namespace Tourze\DoctrineUserAgentBundle\Tests\EventSubscriber;
 
-use PHPUnit\Framework\MockObject\MockObject;
-use PHPUnit\Framework\TestCase;
-use Psr\Log\LoggerInterface;
-use Symfony\Component\HttpFoundation\HeaderBag;
+use Doctrine\ORM\Event\PreUpdateEventArgs;
+use Doctrine\ORM\Mapping\ClassMetadata;
+use Doctrine\Persistence\ObjectManager;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
-use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
 use Tourze\DoctrineUserAgentBundle\Attribute\CreateUserAgentColumn;
 use Tourze\DoctrineUserAgentBundle\Attribute\UpdateUserAgentColumn;
 use Tourze\DoctrineUserAgentBundle\EventSubscriber\UserAgentTrackListener;
+use Tourze\PHPUnitSymfonyKernelTest\AbstractEventSubscriberTestCase;
 
-class UserAgentTrackListenerTest extends TestCase
+/**
+ * @internal
+ */
+#[CoversClass(UserAgentTrackListener::class)]
+#[RunTestsInSeparateProcesses]
+final class UserAgentTrackListenerTest extends AbstractEventSubscriberTestCase
 {
-    private UserAgentTrackListener $listener;
-    private LoggerInterface&MockObject $logger;
-    private PropertyAccessorInterface&MockObject $propertyAccessor;
-
-    protected function setUp(): void
+    protected function onSetUp(): void
     {
-        $this->logger = $this->createMock(LoggerInterface::class);
-        $this->propertyAccessor = $this->createMock(PropertyAccessorInterface::class);
-        $this->listener = new UserAgentTrackListener($this->logger, $this->propertyAccessor);
+        // 子类自定义的初始化逻辑
+    }
+
+    protected function getListener(): UserAgentTrackListener
+    {
+        return self::getService(UserAgentTrackListener::class);
     }
 
     public function testSetAndGetUserAgent(): void
     {
         $userAgent = 'Mozilla/5.0 (Test)';
-        $this->listener->setUserAgent($userAgent);
+        $this->getListener()->setUserAgent($userAgent);
 
-        $this->assertEquals($userAgent, $this->listener->getUserAgent());
+        $this->assertEquals($userAgent, $this->getListener()->getUserAgent());
     }
 
     public function testOnKernelRequest(): void
     {
         $userAgent = 'Mozilla/5.0 (Test)';
 
-        $headers = $this->createMock(HeaderBag::class);
-        $headers->expects($this->once())
-            ->method('get')
-            ->with('User-Agent', '')
-            ->willReturn($userAgent);
+        // 使用真实的 Request 对象而不是 Mock，因为这样可以更好地测试实际的HTTP请求处理
+        $request = new Request();
+        $request->headers->set('User-Agent', $userAgent);
 
-        /** @var Request&MockObject $request */
-        $request = $this->createMock(Request::class);
-        $request->headers = $headers;
-
-        /** @var HttpKernelInterface&MockObject $kernel */
         $kernel = $this->createMock(HttpKernelInterface::class);
         $event = new RequestEvent(
             $kernel,
@@ -57,27 +55,26 @@ class UserAgentTrackListenerTest extends TestCase
             HttpKernelInterface::MAIN_REQUEST
         );
 
-        $this->listener->onKernelRequest($event);
+        $this->getListener()->onKernelRequest($event);
 
-        $this->assertEquals($userAgent, $this->listener->getUserAgent());
+        $this->assertEquals($userAgent, $this->getListener()->getUserAgent());
     }
 
     public function testReset(): void
     {
         $userAgent = 'Mozilla/5.0 (Test)';
-        $this->listener->setUserAgent($userAgent);
-        $this->assertEquals($userAgent, $this->listener->getUserAgent());
+        $this->getListener()->setUserAgent($userAgent);
+        $this->assertEquals($userAgent, $this->getListener()->getUserAgent());
 
-        $this->listener->reset();
+        $this->getListener()->reset();
 
-        $this->assertNull($this->listener->getUserAgent());
+        $this->assertNull($this->getListener()->getUserAgent());
     }
 
     public function testPrePersistWithoutUserAgent(): void
     {
-        // PrePersistEventArgs 是 final 类，无法进行模拟
-        // 这里我们只测试没有设置 UserAgent 时的行为
-        $this->listener->reset();
+        // 测试没有设置 UserAgent 时的行为
+        $this->getListener()->reset();
 
         $entity = new class {
             #[CreateUserAgentColumn]
@@ -88,14 +85,11 @@ class UserAgentTrackListenerTest extends TestCase
                 return $this->createdUserAgent;
             }
 
-            public function setCreatedUserAgent(?string $createdUserAgent): self
+            public function setCreatedUserAgent(?string $createdUserAgent): void
             {
                 $this->createdUserAgent = $createdUserAgent;
-                return $this;
             }
         };
-
-        // 不调用 prePersist 方法，因为无法模拟 PrePersistEventArgs
 
         // 验证没有 UserAgent 时，字段保持为 null
         $this->assertNull($entity->getCreatedUserAgent());
@@ -103,9 +97,8 @@ class UserAgentTrackListenerTest extends TestCase
 
     public function testPreUpdateWithoutUserAgent(): void
     {
-        // PreUpdateEventArgs 是 final 类，无法进行模拟
-        // 这里我们只测试没有设置 UserAgent 时的行为
-        $this->listener->reset();
+        // 测试没有设置 UserAgent 时的行为
+        $this->getListener()->reset();
 
         $entity = new class {
             #[UpdateUserAgentColumn]
@@ -116,16 +109,96 @@ class UserAgentTrackListenerTest extends TestCase
                 return $this->updatedUserAgent;
             }
 
-            public function setUpdatedUserAgent(?string $updatedUserAgent): self
+            public function setUpdatedUserAgent(?string $updatedUserAgent): void
             {
                 $this->updatedUserAgent = $updatedUserAgent;
-                return $this;
             }
         };
 
-        // 不调用 preUpdate 方法，因为无法模拟 PreUpdateEventArgs
-
         // 验证没有 UserAgent 时，字段保持为 null
         $this->assertNull($entity->getUpdatedUserAgent());
+    }
+
+    public function testPrePersistEntity(): void
+    {
+        $userAgent = 'Mozilla/5.0 (Test Persist Entity)';
+        $this->getListener()->setUserAgent($userAgent);
+
+        $entity = new class {
+            #[CreateUserAgentColumn]
+            private ?string $createdUserAgent = null;
+
+            public function getCreatedUserAgent(): ?string
+            {
+                return $this->createdUserAgent;
+            }
+
+            public function setCreatedUserAgent(?string $createdUserAgent): void
+            {
+                $this->createdUserAgent = $createdUserAgent;
+            }
+        };
+
+        $objectManager = $this->createMock(ObjectManager::class);
+        $metadata = $this->createMock(ClassMetadata::class);
+        $reflectionClass = new \ReflectionClass($entity);
+
+        $objectManager->expects($this->once())
+            ->method('getClassMetadata')
+            ->with($entity::class)
+            ->willReturn($metadata)
+        ;
+
+        $metadata->expects($this->once())
+            ->method('getReflectionClass')
+            ->willReturn($reflectionClass)
+        ;
+
+        $this->getListener()->prePersistEntity($objectManager, $entity);
+
+        // 验证 UserAgent 已被设置到实体
+        $this->assertEquals($userAgent, $entity->getCreatedUserAgent());
+    }
+
+    public function testPreUpdateEntity(): void
+    {
+        $userAgent = 'Mozilla/5.0 (Test Update Entity)';
+        $this->getListener()->setUserAgent($userAgent);
+
+        $entity = new class {
+            #[UpdateUserAgentColumn]
+            private ?string $updatedUserAgent = null;
+
+            public function getUpdatedUserAgent(): ?string
+            {
+                return $this->updatedUserAgent;
+            }
+
+            public function setUpdatedUserAgent(?string $updatedUserAgent): void
+            {
+                $this->updatedUserAgent = $updatedUserAgent;
+            }
+        };
+
+        $objectManager = $this->createMock(ObjectManager::class);
+        $eventArgs = $this->createMock(PreUpdateEventArgs::class);
+        $metadata = $this->createMock(ClassMetadata::class);
+        $reflectionClass = new \ReflectionClass($entity);
+
+        $objectManager->expects($this->once())
+            ->method('getClassMetadata')
+            ->with($entity::class)
+            ->willReturn($metadata)
+        ;
+
+        $metadata->expects($this->once())
+            ->method('getReflectionClass')
+            ->willReturn($reflectionClass)
+        ;
+
+        $this->getListener()->preUpdateEntity($objectManager, $entity, $eventArgs);
+
+        // 验证 UserAgent 已被设置到实体
+        $this->assertEquals($userAgent, $entity->getUpdatedUserAgent());
     }
 }

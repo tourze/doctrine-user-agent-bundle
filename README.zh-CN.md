@@ -3,16 +3,22 @@
 [English](README.md) | [中文](README.zh-CN.md)
 
 [![Latest Version](https://img.shields.io/packagist/v/tourze/doctrine-user-agent-bundle.svg?style=flat-square)](https://packagist.org/packages/tourze/doctrine-user-agent-bundle)
+[![Total Downloads](https://img.shields.io/packagist/dt/tourze/doctrine-user-agent-bundle.svg?style=flat-square)](https://packagist.org/packages/tourze/doctrine-user-agent-bundle)
+[![PHP Version Require](https://img.shields.io/packagist/dependency-v/tourze/doctrine-user-agent-bundle/php?style=flat-square)](https://packagist.org/packages/tourze/doctrine-user-agent-bundle)
+[![License](https://img.shields.io/packagist/l/tourze/doctrine-user-agent-bundle?style=flat-square)](https://packagist.org/packages/tourze/doctrine-user-agent-bundle)
+[![代码覆盖率](https://codecov.io/gh/tourze/doctrine-user-agent-bundle/branch/master/graph/badge.svg)](https://codecov.io/gh/tourze/doctrine-user-agent-bundle)
 
-一个用于自动跟踪和记录 Doctrine 实体中 User-Agent 信息的 Symfony Bundle。
+一个用于自动捕获和记录 Doctrine 实体中 User-Agent 信息的 Symfony Bundle，为数据分析和审计提供支持。
 
 ## 特性
 
-- 自动从 HTTP 请求中捕获 User-Agent 信息
-- 提供属性标记用于跟踪 User-Agent 的实体字段
-- 支持在实体创建和更新时跟踪 User-Agent
-- 与 Doctrine ORM 事件无缝集成
-- 基础使用无需配置
+- 🚀 **零配置** - 使用简单属性即可开箱即用
+- 📱 **自动检测** - 自动从 HTTP 请求中捕获 User-Agent
+- 🏷️ **基于属性** - 简单的 PHP 8+ 属性标记实体属性
+- ⚡ **事件驱动** - 与 Doctrine ORM 生命周期事件无缝集成
+- 🔄 **创建和更新** - 分别跟踪实体创建和修改
+- 🧩 **即用 Traits** - 预建的 traits 满足常见用例
+- 🔒 **非侵入性** - 仅在属性为 null 时设置值
 
 ## 安装
 
@@ -35,16 +41,47 @@ return [
 2. 在实体中使用属性：
 
 ```php
+use Doctrine\DBAL\Types\Types;
+use Doctrine\ORM\Mapping as ORM;
 use Tourze\DoctrineUserAgentBundle\Attribute\CreateUserAgentColumn;
 use Tourze\DoctrineUserAgentBundle\Attribute\UpdateUserAgentColumn;
 
-class YourEntity
+#[ORM\Entity]
+class Article
 {
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column]
+    private ?int $id = null;
+
     #[CreateUserAgentColumn]
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $createdUserAgent = null;
 
     #[UpdateUserAgentColumn]
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $updatedUserAgent = null;
+
+    // Getters and setters...
+}
+```
+
+3. 或者使用便捷的 trait：
+
+```php
+use Tourze\DoctrineUserAgentBundle\Traits\CreatedByUAAware;
+
+#[ORM\Entity]
+class Article
+{
+    use CreatedByUAAware;
+
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column]
+    private ?int $id = null;
+
+    // 您的其他属性...
 }
 ```
 
@@ -52,16 +89,65 @@ class YourEntity
 
 ### 可用属性
 
-- `#[CreateUserAgentColumn]`：记录实体创建时的 User-Agent
-- `#[UpdateUserAgentColumn]`：记录实体更新时的 User-Agent
+#### `#[CreateUserAgentColumn]`
+在实体首次持久化到数据库时记录 User-Agent 头。
 
-Bundle 会自动从请求头中捕获并存储 User-Agent 信息。
+```php
+#[CreateUserAgentColumn]
+#[ORM\Column(type: Types::TEXT, nullable: true)]
+private ?string $createdUserAgent = null;
+```
+
+#### `#[UpdateUserAgentColumn]`
+在实体更新时记录 User-Agent 头。
+
+```php
+#[UpdateUserAgentColumn]
+#[ORM\Column(type: Types::TEXT, nullable: true)]
+private ?string $updatedUserAgent = null;
+```
+
+### 可用 Traits
+
+#### `CreatedByUAAware`
+一个即用的 trait，添加了具有适当 Doctrine 映射的 `createdFromUa` 属性：
+
+```php
+use Tourze\DoctrineUserAgentBundle\Traits\CreatedByUAAware;
+
+class MyEntity
+{
+    use CreatedByUAAware;
+    
+    // 访问 User-Agent
+    public function getCreatedFromUa(): ?string
+    {
+        return $this->createdFromUa;
+    }
+}
+```
+
+### 工作原理
+
+1. **请求捕获**：Bundle 监听 Symfony 的 `KernelEvents::REQUEST` 并捕获 `User-Agent` 头
+2. **实体事件**：当 Doctrine 触发 `prePersist` 或 `preUpdate` 事件时，Bundle 检查标记的属性
+3. **值分配**：仅对当前为 `null` 的属性分配 User-Agent 值
+4. **非侵入性**：从不覆盖现有值
+
+### 使用场景
+
+- **数据分析**：跟踪哪些浏览器/设备正在创建内容
+- **审计日志**：维护实体修改的详细记录
+- **安全性**：监控可疑的 User-Agent 模式
+- **用户体验**：了解用户的技术偏好
 
 ## 系统要求
 
 - PHP 8.1 或更高版本
 - Symfony 6.4 或更高版本
-- Doctrine ORM Bundle 2.13 或更高版本
+- Doctrine ORM 3.0 或更高版本
+- Doctrine DBAL 4.0 或更高版本
+- Doctrine Bundle 2.13 或更高版本
 
 ## 贡献
 

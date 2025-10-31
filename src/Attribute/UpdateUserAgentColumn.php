@@ -3,9 +3,9 @@
 namespace Tourze\DoctrineUserAgentBundle\Attribute;
 
 /**
- * 记录更新记录时的IP
+ * 记录更新记录时的User-Agent
  */
-#[\Attribute(\Attribute::TARGET_PROPERTY)]
+#[\Attribute(flags: \Attribute::TARGET_PROPERTY)]
 class UpdateUserAgentColumn
 {
 }

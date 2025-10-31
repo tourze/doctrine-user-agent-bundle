@@ -2,15 +2,20 @@
 
 namespace Tourze\DoctrineUserAgentBundle\Tests\Attribute;
 
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Tourze\DoctrineUserAgentBundle\Attribute\UpdateUserAgentColumn;
 
-class UpdateUserAgentColumnTest extends TestCase
+/**
+ * @internal
+ */
+#[CoversClass(UpdateUserAgentColumn::class)]
+final class UpdateUserAgentColumnTest extends TestCase
 {
     public function testAttributeExists(): void
     {
         $attribute = new UpdateUserAgentColumn();
-        $this->assertInstanceOf(UpdateUserAgentColumn::class, $attribute);
+        $this->assertNotNull($attribute);
     }
 
     public function testAttributeTarget(): void
@@ -23,6 +28,6 @@ class UpdateUserAgentColumnTest extends TestCase
 
         $arguments = $attributes[0]->getArguments();
         $this->assertCount(1, $arguments);
-        $this->assertEquals(\Attribute::TARGET_PROPERTY, $arguments[0]);
+        $this->assertEquals(\Attribute::TARGET_PROPERTY, $arguments['flags']);
     }
 }

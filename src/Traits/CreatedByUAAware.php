@@ -22,10 +22,8 @@ trait CreatedByUAAware
         return $this->createdFromUa;
     }
 
-    public function setCreatedFromUa(?string $createdFromUa): static
+    public function setCreatedFromUa(?string $createdFromUa): void
     {
         $this->createdFromUa = $createdFromUa;
-
-        return $this;
     }
 }
